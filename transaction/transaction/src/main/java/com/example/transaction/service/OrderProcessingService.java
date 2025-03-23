@@ -2,10 +2,7 @@ package com.example.transaction.service;
 
 import com.example.transaction.entity.Order;
 import com.example.transaction.entity.Product;
-import com.example.transaction.handler.AuditLogHandler;
-import com.example.transaction.handler.InventoryHandler;
-import com.example.transaction.handler.OrderHandler;
-import com.example.transaction.handler.PaymentValidatorHandler;
+import com.example.transaction.handler.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,8 +19,9 @@ public class OrderProcessingService {
     InventoryHandler inventoryHandler;
     AuditLogHandler auditLogHandler;
     PaymentValidatorHandler paymentValidatorHandler;
+    NotificationHandler notificationHandler;
 
-    //MANDATORY: Require an existing transaction , if nothing found it will throw exception
+    //NEVER: Ensures the method is executed without a transaction ; throws an exception if a transaction is present
     @Transactional(propagation = Propagation.REQUIRED)
     public Order placeAnOrder(Order order) {
         //get product inventory
@@ -46,13 +44,25 @@ public class OrderProcessingService {
             auditLogHandler.logAuditDetails(order, "order placement failed");
         }
 
-        paymentValidatorHandler.validatePayment(order);
+
+        //paymentValidatorHandler.validatePayment(order);
+
+        //retries save logic 3 times
+        notificationHandler.sendOrderConfirmationNotification(order);
 
         //required_new
 
         return saveOrder;
 
     }
+//    //Call this method after placeAnOrder is successfully completed
+//    public void processOrder(Order order){
+//        //Step 1: Place the order
+//        Order saveOrder = placeAnOrder(order);
+//
+//        //Step 2: Send Notification (No-transactional)
+//        notificationHandler.sendOrderConfirmationNotification(order);
+//    }
 
     private static void validateStockAvailability(Order order, Product product) {
         if (order.getQuantity() > product.getStockQuantity()) {
