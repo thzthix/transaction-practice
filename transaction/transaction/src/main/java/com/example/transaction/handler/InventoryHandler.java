@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import com.example.transaction.repository.InventoryRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class InventoryHandler {
     InventoryRepository inventoryRepository;
 
+    @Transactional(propagation = Propagation.REQUIRED)
     public Product updateProductsDetails(Product product){
         //forcefully throwing exception to simulate the use of transaction
         if(product.getPrice()>5000){
