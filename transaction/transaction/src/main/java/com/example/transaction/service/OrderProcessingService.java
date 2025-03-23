@@ -20,8 +20,9 @@ public class OrderProcessingService {
     AuditLogHandler auditLogHandler;
     PaymentValidatorHandler paymentValidatorHandler;
     NotificationHandler notificationHandler;
+    ProductRecommendationHandler productRecommendationHandler;
 
-    //NEVER: Ensures the method is executed without a transaction ; throws an exception if a transaction is present
+    //NOT_SUPPORTED: Executes the method non-transactionally, suspending any active transaction
     @Transactional(propagation = Propagation.REQUIRED)
     public Order placeAnOrder(Order order) {
         //get product inventory
@@ -44,13 +45,7 @@ public class OrderProcessingService {
             auditLogHandler.logAuditDetails(order, "order placement failed");
         }
 
-
-        //paymentValidatorHandler.validatePayment(order);
-
-        //retries save logic 3 times
-        notificationHandler.sendOrderConfirmationNotification(order);
-
-        //required_new
+        productRecommendationHandler.getRecommendations();
 
         return saveOrder;
 
