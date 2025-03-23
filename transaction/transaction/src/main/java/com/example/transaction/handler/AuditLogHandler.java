@@ -18,7 +18,7 @@ import java.time.LocalDateTime;
 public class AuditLogHandler {
     AuditLogRepository auditLogRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    //@Transactional(propagation = Propagation.REQUIRES_NEW)
     //Log audit details (runs in an independent transaction)
     public void logAuditDetails(Order order, String action){
         AuditLog auditLog = new AuditLog();

@@ -5,6 +5,7 @@ import com.example.transaction.entity.Product;
 import com.example.transaction.handler.AuditLogHandler;
 import com.example.transaction.handler.InventoryHandler;
 import com.example.transaction.handler.OrderHandler;
+import com.example.transaction.handler.PaymentValidatorHandler;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -20,13 +21,14 @@ public class OrderProcessingService {
     OrderHandler orderHandler;
     InventoryHandler inventoryHandler;
     AuditLogHandler auditLogHandler;
+    PaymentValidatorHandler paymentValidatorHandler;
 
-    //REQUIRED_NEW : Always create a new transaction, suspending if any existing transaction
+    //MANDATORY: Require an existing transaction , if nothing found it will throw exception
     @Transactional(propagation = Propagation.REQUIRED)
     public Order placeAnOrder(Order order) {
         //get product inventory
         Product product = inventoryHandler.getProduct(order.getProductId());
-        //validate srock availability(<5)
+        //validate stock availability(<5)
         validateStockAvailability(order, product);
         //update total price in order entity
         order.setTotalPrice(product.getPrice() * order.getQuantity());
@@ -43,6 +45,8 @@ public class OrderProcessingService {
         } catch (Exception e) {
             auditLogHandler.logAuditDetails(order, "order placement failed");
         }
+
+        paymentValidatorHandler.validatePayment(order);
 
         //required_new
 
